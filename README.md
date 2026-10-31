@@ -1,1 +1,20 @@
-# MonCoach
+# MonCoach : structure
+
+  index.html            page d'accueil (choix du programme, statut de la semaine)
+  axel.html             page d'Axel      (quelques lignes : tout est dans assets/ et programmes/)
+  coralie.html          page de Coralie
+  assets/app.js         moteur commun (séance guidée, historique, minuteur, import/export)
+  assets/style.css      feuille de style commune (le thème dépend de <html data-prog="...">)
+  assets/exercices.js   bibliothèque d'exercices partagée (figures animées, consignes)
+  programmes/axel.js    séances et consignes d'Axel
+  programmes/coralie.js séances et consignes de Coralie
+
+Modifier un programme : éditer uniquement programmes/axel.js ou programmes/coralie.js.
+Corriger un bug ou changer le design : une seule fois, dans assets/.
+Ajouter une personne : copier coralie.html + programmes/coralie.js, changer la clé
+(data-prog, "key" dans le fichier de programme), ajouter un thème dans assets/style.css.
+
+Données : conservées dans le navigateur (localStorage, clés « sport:axel » et « sport:coralie »,
+inchangées par rapport à l'ancienne version). Avant de déplacer les fichiers vers une autre
+adresse, exporter les séances depuis l'onglet « Programme » > « Exporter en fichier », puis les
+réimporter sur la nouvelle adresse.
