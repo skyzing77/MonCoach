@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr" data-prog="coralie">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#1a0e14">
+<meta name="robots" content="noindex, nofollow">
+<title>Mon coach – Coralie</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%23ff7a6b'/%3E%3Ctext%20x='32'%20y='46'%20font-family='Arial,sans-serif'%20font-size='40'%20font-weight='800'%20text-anchor='middle'%20fill='%231a0e14'%3EC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<main id="main" tabindex="-1">
+<header><div><a class="back" href="index.html">‹ Tous les programmes</a><h1 id="h1"></h1><p class="mute" id="sub"></p></div><div id="today"></div></header>
+<div id="app"><noscript><p class="noscript">Cette page a besoin de JavaScript pour afficher le programme et enregistrer les séances.</p></noscript></div>
+<footer class="foot">Mon coach · <span id="year"></span></footer>
+</main>
+<div id="tbar" hidden><div><div id="tl" class="mute" style="color:inherit"></div><b id="tt"></b></div><div><button id="tplus" aria-label="Ajouter 15 secondes">+15 s</button> <button id="tx" aria-label="Arrêter le minuteur">✕</button></div></div>
+<nav aria-label="Navigation"><button data-t="seance" class="on"><i>▶</i>Séance</button><button data-t="histo"><i>☰</i>Historique</button><button data-t="prog"><i>⚙</i>Programme</button></nav>
+<div id="guide" hidden role="dialog" aria-modal="true" aria-label="Séance guidée"><div><div id="gprog"><i></i></div><div class="gmeta"><span id="gcount" aria-live="polite"></span><button id="gq">Quitter</button></div></div><div id="gbody"></div></div>
+<div id="sheet" hidden role="dialog" aria-modal="true" aria-label="Détail de l’exercice"></div>
+<div id="toast" hidden aria-hidden="true"></div>
+<div id="sr" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="assets/exercices.js"></script>
+<script src="programmes/coralie.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mon coach : accès rapide aux programmes d'entraînement d'Axel et de Coralie.">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0d1020">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Mon coach</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%238f73ff'/%3E%3Ctext%20x='32'%20y='46'%20font-family='Arial,sans-serif'%20font-size='40'%20font-weight='800'%20text-anchor='middle'%20fill='%230d1020'%3EM%3C/text%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0d1020;
+            --surface: #151933;
+            --text: #f2f3fa;
+            --muted: #9aa1bd;
+            --line: rgba(255, 255, 255, 0.09);
+
+            --axel: #8f73ff;
+            --axel-deep: #3b2a8f;
+            --coralie: #ff7a6b;
+            --coralie-deep: #7a2a3a;
+            --coralie-surface: #271720;
+
+            --edge: rgba(255, 255, 255, 0.2);
+            --shine: inset 0 1px 0 rgba(255, 255, 255, 0.38), inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+            --blur: blur(22px) saturate(170%);
+
+            --font: 'Bricolage Grotesque', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            color-scheme: dark;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Fond animé */
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: -25%;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(42% 38% at 14% 20%, rgba(91, 61, 245, 0.34), transparent 70%),
+                radial-gradient(40% 36% at 88% 30%, rgba(255, 94, 108, 0.28), transparent 70%),
+                radial-gradient(46% 40% at 55% 92%, rgba(31, 107, 255, 0.22), transparent 70%);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            body::before { animation: drift 30s ease-in-out infinite alternate; }
+        }
+
+        @keyframes drift {
+            to { transform: translate3d(4%, 3%, 0) rotate(6deg) scale(1.08); }
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* En-tête */
+
+        header {
+            padding: 26px 0;
+            border-bottom: 1px solid var(--edge);
+            background: rgba(255, 255, 255, 0.04);
+            -webkit-backdrop-filter: var(--blur);
+            backdrop-filter: var(--blur);
+        }
+
+        header .wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        #today {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Introduction */
+
+        main {
+            flex: 1;
+            padding: 72px 0 64px;
+        }
+
+        .intro { margin-bottom: 48px; }
+
+        h1 {
+            font-size: clamp(38px, 7vw, 68px);
+            font-weight: 800;
+            line-height: 1.02;
+            letter-spacing: -0.035em;
+            max-width: 14ch;
+            margin-bottom: 18px;
+        }
+
+        .intro p {
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.55;
+            max-width: 46ch;
+        }
+
+        /* Choix du programme */
+
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .choice {
+            --accent: var(--axel);
+            --deep: var(--axel-deep);
+
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 56px;
+            min-height: 300px;
+            padding: 30px;
+            border-radius: 36px;
+            border: 1px solid var(--edge);
+            background:
+                radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--deep) 85%, transparent) 0%, transparent 60%),
+                linear-gradient(150deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 45%),
+                color-mix(in srgb, var(--surface) 86%, transparent);
+            box-shadow: var(--shine), 0 20px 50px rgba(0, 0, 0, 0.35);
+            -webkit-backdrop-filter: var(--blur);
+            backdrop-filter: var(--blur);
+            color: var(--text);
+            text-decoration: none;
+            overflow: hidden;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .choice.coralie {
+            --accent: var(--coralie);
+            --deep: var(--coralie-deep);
+            --surface: var(--coralie-surface);
+        }
+
+        /* Grande initiale en filigrane : l'élément mémorable de la page */
+        .choice .initial {
+            position: absolute;
+            right: 22px;
+            bottom: -64px;
+            font-size: 280px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.06em;
+            color: var(--accent);
+            opacity: 0.18;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .choice:hover,
+        .choice:focus-visible {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: var(--shine), 0 26px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .choice:hover .initial,
+        .choice:focus-visible .initial {
+            opacity: 0.28;
+            transform: translateX(-6px);
+        }
+
+        .choice:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        .choice h2 {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 10px;
+        }
+
+        .choice p {
+            color: #d9d2e6;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 30ch;
+        }
+
+        /* Statut de la semaine (lu depuis le stockage local du navigateur) */
+        .choice .status {
+            margin-top: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .open {
+            position: relative;
+            z-index: 1;
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -2px 6px rgba(0, 0, 0, 0.14), 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
+            color: #0d1020;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .open svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .choice:hover .open svg,
+        .choice:focus-visible .open svg {
+            transform: translateX(4px);
+        }
+
+        /* Accessibilité */
+
+        .skip {
+            position: absolute;
+            left: 12px;
+            top: -80px;
+            z-index: 30;
+            background: var(--axel);
+            color: #0d1020;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .skip:focus { top: 12px; }
+
+        main:focus { outline: none; }
+
+        @media (prefers-reduced-transparency: reduce) {
+            header, .choice { -webkit-backdrop-filter: none; backdrop-filter: none; }
+            .choice { background: var(--surface); }
+            body::before { display: none; }
+        }
+
+        @media (forced-colors: active) {
+            body::before { display: none; }
+            .choice { border: 2px solid LinkText; }
+            .open { border: 1px solid ButtonText; }
+        }
+
+        /* Pied de page */
+
+        footer {
+            padding: 24px 0;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Mobile */
+
+        @media (max-width: 720px) {
+            main { padding: 48px 0 40px; }
+            .intro { margin-bottom: 32px; }
+            .choices { grid-template-columns: 1fr; }
+            .choice { min-height: 240px; gap: 40px; padding: 26px; }
+            .choice .initial { font-size: 220px; bottom: -50px; }
+            .intro p { font-size: 16px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
+            .choice:hover, .choice:focus-visible { transform: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="skip" href="#main">Aller au contenu</a>
+
+    <header>
+        <div class="wrap">
+            <div class="brand">Mon coach</div>
+            <time id="today"></time>
+        </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+        <div class="wrap">
+
+            <section class="intro">
+                <h1>C'est l'heure de s'entraîner.</h1>
+                <p>Choisissez votre programme pour retrouver la séance du jour et vos exercices.</p>
+            </section>
+
+            <nav class="choices" aria-label="Choisir un programme">
+
+                <a class="choice axel" href="axel.html">
+                    <span class="initial" aria-hidden="true">A</span>
+                    <div>
+                        <h2>Programme d'Axel</h2>
+                        <p>Séances, exercices et organisation de la semaine.</p>
+                        <p class="status" id="st-axel"></p>
+                    </div>
+                    <span class="open">
+                        Ouvrir le programme
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
+                </a>
+
+                <a class="choice coralie" href="coralie.html">
+                    <span class="initial" aria-hidden="true">C</span>
+                    <div>
+                        <h2>Programme de Coralie</h2>
+                        <p>Séances, exercices et organisation de la semaine.</p>
+                        <p class="status" id="st-coralie"></p>
+                    </div>
+                    <span class="open">
+                        Ouvrir le programme
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
+                </a>
+
+            </nav>
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="wrap">Mon coach · <span id="year"></span></div>
+    </footer>
+
+    <script src="programmes/axel.js"></script>
+    <script src="programmes/coralie.js"></script>
+    <script>
+        const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
+        const now = new Date();
+        const t = document.getElementById('today');
+        t.textContent = cap1(now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
+        t.dateTime = now.toISOString().slice(0, 10);
+        document.getElementById('year').textContent = now.getFullYear();
+
+        /* Statut de la semaine : même logique de semaine (lundi → dimanche) que les programmes */
+        const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        const weekStart = s => { const x = new Date(s + 'T12:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return ymd(x); };
+        const thisWeek = weekStart(ymd(now));
+
+        for (const key of ['axel', 'coralie']) {
+            const el = document.getElementById('st-' + key), goal = window.PROGRAMS[key].goal;
+            let history = [];
+            try {
+                const o = JSON.parse(localStorage.getItem('sport:' + key) || '{}');
+                history = Array.isArray(o.history) ? o.history : [];
+            } catch (e) { /* stockage indisponible : on n'affiche rien */ }
+            if (!history.length) { el.hidden = true; continue; }
+            const n = history.filter(h => h && /^\d{4}-\d\d-\d\d$/.test(String(h.date)) && weekStart(h.date) === thisWeek).length;
+            el.textContent = n >= goal
+                ? 'Objectif de la semaine atteint (' + n + '/' + goal + ')'
+                : 'Cette semaine : ' + n + '/' + goal + ' séance' + (goal > 1 ? 's' : '');
+        }
+    </script>
+
+</body>
+</html>
