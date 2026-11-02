@@ -1,0 +1,31 @@
+{
+  "id": "./coralie.html",
+  "name": "Mon coach – Coralie",
+  "short_name": "Coach Coralie",
+  "description": "Programme d'entraînement, séance guidée, minuteur et historique.",
+  "lang": "fr",
+  "start_url": "./coralie.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a0e14",
+  "theme_color": "#1a0e14",
+  "icons": [
+    {
+      "src": "assets/icons/coralie-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/coralie-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/coralie-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

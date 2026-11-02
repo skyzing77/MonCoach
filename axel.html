@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr" data-prog="axel">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1020">
+<meta name="robots" content="noindex, nofollow">
+<title>Mon coach – Axel</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='16'%20fill='%238f73ff'/%3E%3Ctext%20x='32'%20y='46'%20font-family='Arial,sans-serif'%20font-size='40'%20font-weight='800'%20text-anchor='middle'%20fill='%230d1020'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="manifest" href="manifest-axel.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/axel-apple-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Coach Axel">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<main id="main" tabindex="-1">
+<header><div><a class="back" href="index.html">‹ Tous les programmes</a><h1 id="h1"></h1><p class="mute" id="sub"></p></div><div id="today"></div></header>
+<div id="app"><noscript><p class="noscript">Cette page a besoin de JavaScript pour afficher le programme et enregistrer les séances.</p></noscript></div>
+<footer class="foot">Mon coach · <span id="year"></span></footer>
+</main>
+<div id="tbar" hidden><div><div id="tl" class="mute" style="color:inherit"></div><b id="tt"></b></div><div><button id="tplus" aria-label="Ajouter 15 secondes">+15 s</button> <button id="tx" aria-label="Arrêter le minuteur">✕</button></div></div>
+<nav aria-label="Navigation"><button data-t="seance" class="on"><i>▶</i>Séance</button><button data-t="histo"><i>☰</i>Historique</button><button data-t="prog"><i>⚙</i>Programme</button></nav>
+<div id="guide" hidden role="dialog" aria-modal="true" aria-label="Séance guidée"><div><div id="gprog"><i></i></div><div class="gmeta"><span id="gcount" aria-live="polite"></span><button id="gq">Quitter</button></div></div><div id="gbody"></div></div>
+<div id="sheet" hidden role="dialog" aria-modal="true" aria-label="Détail de l’exercice"></div>
+<div id="toast" hidden aria-hidden="true"></div>
+<div id="sr" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="assets/exercices.js"></script>
+<script src="programmes/axel.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

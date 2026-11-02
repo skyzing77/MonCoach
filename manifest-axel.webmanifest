@@ -1,0 +1,31 @@
+{
+  "id": "./axel.html",
+  "name": "Mon coach – Axel",
+  "short_name": "Coach Axel",
+  "description": "Programme d'entraînement, séance guidée, minuteur et historique.",
+  "lang": "fr",
+  "start_url": "./axel.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1020",
+  "theme_color": "#0d1020",
+  "icons": [
+    {
+      "src": "assets/icons/axel-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/axel-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/axel-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
