@@ -8,7 +8,8 @@ const FILES = [
   'assets/fonts/bricolage-grotesque.woff2',
   'programmes/axel.js', 'programmes/coralie.js',
   'manifest-accueil.webmanifest', 'manifest-axel.webmanifest', 'manifest-coralie.webmanifest',
-  'assets/icons/accueil-192.png', 'assets/icons/axel-192.png', 'assets/icons/coralie-192.png'
+  'assets/icons/accueil-192.png', 'assets/icons/axel-192.png', 'assets/icons/coralie-192.png',
+  'assets/icons/accueil-32.png', 'assets/icons/axel-32.png', 'assets/icons/coralie-32.png'
 ];
 
 self.addEventListener('install', e => {
