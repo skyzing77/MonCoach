@@ -3,6 +3,8 @@
  "key": "coralie",
  "mode": "circuit",
  "goal": 1,
+ "ui": 2,
+ "look": "f",
  "title": "Programme sportif – Coralie",
  "h1": "Programme sportif – Coralie",
  "sub": "1 séance par semaine. Objectif : remise en forme et perte de poids. Avec ou sans sortie VTT.",
@@ -62,37 +64,44 @@
     {
      "n": "Squat goblet jusqu’au banc",
      "note": "Force des jambes pour la pédalée. Haltère légère.",
-     "k": "squat"
+     "k": "squat",
+     "s": "Squat goblet"
     },
     {
      "n": "Step-up sur le banc (alterner les jambes)",
      "note": "Reproduit l’effort de pédalage, une jambe à la fois.",
-     "k": "step"
+     "k": "step",
+     "s": "Step-up sur le banc"
     },
     {
      "n": "Rowing un bras, genou et main sur le banc",
      "note": "Dos et prise pour tenir le guidon. 20 s par côté, en enchaînant sans pause.",
-     "k": "row"
+     "k": "row",
+     "s": "Rowing un bras"
     },
     {
      "n": "Soulevé de terre roumain, haltères légères",
      "note": "Chaîne postérieure, aide à tenir la position sur le vélo.",
-     "k": "rdl"
+     "k": "rdl",
+     "s": "Soulevé de terre roumain"
     },
     {
      "n": "Pompes inclinées, mains sur le banc",
      "note": "Stabilité des épaules et des bras en descente.",
-     "k": "push"
+     "k": "push",
+     "s": "Pompes inclinées"
     },
     {
      "n": "Hip thrust, haut du dos sur le banc",
      "note": "Fessiers. Sans charge, puis haltère sur les hanches.",
-     "k": "hip"
+     "k": "hip",
+     "s": "Hip thrust"
     },
     {
      "n": "Planche ou dead bug sur le tapis",
      "note": "Gainage du tronc.",
-     "k": "plank"
+     "k": "plank",
+     "s": "Planche ou dead bug"
     }
    ]
   }

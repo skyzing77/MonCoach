@@ -1,10 +1,10 @@
 /* Service worker : met le site en cache pour qu'il fonctionne sans réseau (salle, garage…).
    ⚠️ Après chaque modification d'un fichier du site, incrémenter VERSION
    pour que les téléphones récupèrent la nouvelle version. */
-const VERSION = 'moncoach-v1';
+const VERSION = 'moncoach-v13';
 const FILES = [
   './', 'index.html', 'axel.html', 'coralie.html', '404.html',
-  'assets/app.js', 'assets/style.css', 'assets/exercices.js', 'assets/fonts.css',
+  'assets/app.js', 'assets/style.css', 'assets/exercices.js', 'assets/figures.js', 'assets/fonts.css',
   'assets/fonts/bricolage-grotesque.woff2',
   'programmes/axel.js', 'programmes/coralie.js',
   'manifest-accueil.webmanifest', 'manifest-axel.webmanifest', 'manifest-coralie.webmanifest',

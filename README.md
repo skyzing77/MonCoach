@@ -41,6 +41,7 @@ MonCoach/
 │   ├── app.js                  # Moteur commun (séance guidée, historique, minuteur, import/export)
 │   ├── style.css               # Feuille de style commune (le thème dépend de <html data-prog="...">)
 │   ├── exercices.js            # Bibliothèque d'exercices partagée (figures animées, consignes)
+│   ├── figures.js              # Figures illustrées v2 (poses, muscles travaillés, repères de technique), chargées par les programmes "ui": 2
 │   ├── fonts.css + fonts/      # Police Bricolage Grotesque hébergée localement (licence OFL)
 │   └── icons/                  # Icônes de l'application
 └── programmes/
@@ -53,6 +54,18 @@ MonCoach/
 1. Copier `programmes/coralie.js` (mode `circuit`) ou `programmes/axel.js` (mode `sets`) en `programmes/<nom>.js`, remplacer la clé (`"key"` et `window.PROGRAMS.<nom>`) et adapter les séances. Les exercices (`"k"`) doivent exister dans `assets/exercices.js`.
 2. Copier `coralie.html` en `<nom>.html` et y remplacer `coralie` par `<nom>` (`data-prog`, script du programme, manifeste, icône).
 3. Ajouter un manifeste `manifest-<nom>.webmanifest`, un thème `:root[data-prog="<nom>"]` dans `assets/style.css`, une carte dans `index.html`, et les nouveaux fichiers dans la liste `FILES` de `sw.js`.
+
+## 🧭 Options de programme (« ui »: 2)
+
+Les deux programmes activent `"ui": 2` (et chargent `assets/figures.js`). En mode circuit (Coralie), l'écran d'exercice affiche le temps de travail et le repos suivant. Avec cette option :
+
+- chrono d'échauffement et de gainage lancé à la main (« Lancer le chrono », 3 s pour se mettre en place) ;
+- `"rest"` sur une étape d'échauffement : repos avant la 1ʳᵉ série ;
+- `"sides"` : une série = les deux côtés, ordre alterné à chaque série ; `"parts"` : étapes d'un superset ;
+- `"hold": [30, 45]` : série chronométrée (durée enregistrée) ; `"noLoad": true` : pas de champ charge ;
+- `"steps"`, `"tip"`, `"load"`, `"sideNote"`, `"yt"` : consignes propres au programme (prioritaires sur `exercices.js`).
+
+Sans changer l’écran de séance, `"fig": 2` active seulement les figures illustrées (la page doit charger `assets/figures.js`). `"look": "f"` dessine un personnage féminin (Coralie).
 
 ## 🔄 Mettre à jour le site
 
