@@ -1,38 +1,46 @@
 <!doctype html>
-<html lang="fr" data-prog="coralie">
+<html lang="fr" data-prog="coralie" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#1a0e14">
 <meta name="robots" content="noindex, nofollow">
 <title>Mon coach – Coralie</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/coralie-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/coralie-192.png">
-<link rel="preload" href="assets/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/fonts.css">
-<link rel="manifest" href="manifest-coralie.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/coralie-apple-180.png">
+<link rel="manifest" href="manifest-coralie.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Coach Coralie">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<script src="src/boot-theme.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
-<main id="main" tabindex="-1">
-<header><div><a class="back" href="index.html">‹ Tous les programmes</a><h1 id="h1"></h1><p class="mute" id="sub"></p></div><div id="today"></div></header>
-<div id="app"><noscript><p class="noscript">Cette page a besoin de JavaScript pour afficher le programme et enregistrer les séances.</p></noscript></div>
-<footer class="foot">Mon coach · <span id="year"></span></footer>
-</main>
-<div id="tbar" hidden><div><div id="tl" class="mute" style="color:inherit"></div><b id="tt"></b></div><div><button id="tplus" aria-label="Ajouter 15 secondes">+15 s</button> <button id="tx" aria-label="Arrêter le minuteur">✕</button></div></div>
-<nav aria-label="Navigation"><button data-t="seance" class="on"><i>▶</i>Séance</button><button data-t="histo"><i>☰</i>Historique</button><button data-t="prog"><i>⚙</i>Programme</button></nav>
-<div id="guide" hidden role="dialog" aria-modal="true" aria-label="Séance guidée"><div><div id="gprog"><i></i></div><div class="gmeta"><span id="gcount" aria-live="polite"></span><button id="gq">Quitter</button></div></div><div id="gbody"></div></div>
-<div id="sheet" hidden role="dialog" aria-modal="true" aria-label="Détail de l’exercice"></div>
-<div id="toast" hidden aria-hidden="true"></div>
+<div id="shell">
+  <header class="top">
+    <div><a class="back" href="index.html" aria-label="Tous les programmes">‹ Programmes · <span id="prog-name">Coralie</span></a><h1 id="title">Séance</h1></div>
+    <div class="date" id="date"></div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div id="view"><noscript><p class="noscript">Cette page a besoin de JavaScript pour afficher le programme et enregistrer les séances.</p></noscript></div>
+  </main>
+</div>
+<div id="minibar" hidden role="group" aria-label="Minuteur de repos"><div class="grow"><div class="l"></div><div class="t" role="timer"></div></div><button type="button" data-m="add" aria-label="Ajouter 15 secondes">+15 s</button><button type="button" data-m="stop" aria-label="Arrêter le minuteur">✕</button></div>
+<nav class="tabs" aria-label="Navigation principale"></nav>
+<div id="update" hidden role="status"><span class="grow"><b>Nouvelle version prête</b></span><button type="button" class="btn sm">Mettre à jour</button></div>
+<div id="workout" class="screen" hidden role="dialog" aria-modal="true" aria-label="Séance guidée"></div>
+<div id="editor" class="screen" hidden role="dialog" aria-modal="true" aria-label="Modifier le programme"></div>
+<div id="sheet" class="screen" hidden role="dialog" aria-modal="true" aria-label="Fiche de l’exercice"></div>
+<div id="dialog" hidden></div>
+<div id="toast" hidden></div>
 <div id="sr" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="assets/exercices.js"></script>
-<script src="assets/figures.js"></script>
-<script src="programmes/coralie.js"></script>
-<script src="assets/app.js"></script>
+<script defer src="assets/js/app.js"></script>
 </body>
 </html>

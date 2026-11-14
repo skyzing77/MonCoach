@@ -2,13 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0d1020">
 <meta name="robots" content="noindex, nofollow">
 <title>Page introuvable – Mon coach</title>
 <style>
-  :root{--bg:#0d1020;--ink:#f2f3fa;--mute:#9aa1bd;--acc:#8f73ff;color-scheme:dark}
+  :root{--bg:#0d1020;--ink:#f2f3fa;--mute:#b2b8d4;--acc:#8f73ff;color-scheme:dark}
   *{box-sizing:border-box}
   body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;
     background:radial-gradient(42% 38% at 14% 20%,rgba(91,61,245,.34),transparent 70%),radial-gradient(40% 36% at 88% 30%,rgba(255,94,108,.28),transparent 70%),var(--bg);
@@ -23,13 +23,14 @@
 <main>
   <h1>Page introuvable</h1>
   <p>Cette page n’existe pas ou a été déplacée.</p>
-  <a id="home" href="/MonCoach/">Retour à l’accueil</a>
+  <a id="home" href="./">Retour à l’accueil</a>
 </main>
 <script>
-  /* GitHub Pages sert cette page pour toute adresse inconnue : on calcule le lien d'accueil
-     à partir du premier dossier de l'URL (fonctionne aussi avec un domaine personnalisé). */
+  /* GitHub Pages sert cette page pour toute adresse inconnue, quel que soit le dossier demandé :
+     le lien d'accueil est recalculé à partir du premier dossier de l'adresse sur *.github.io
+     (site de projet), et vaut la racine sur un domaine personnalisé. */
   (function(){var seg=location.pathname.split('/')[1];
-    document.getElementById('home').href=(location.hostname.endsWith('github.io')&&seg)?'/'+seg+'/':'/';})();
+    document.getElementById('home').href=(/\.github\.io$/.test(location.hostname)&&seg&&seg.indexOf('.')<0)?'/'+seg+'/':'/';})();
 </script>
 </body>
 </html>

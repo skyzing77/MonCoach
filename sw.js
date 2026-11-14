@@ -1,44 +1,93 @@
-/* Service worker : met le site en cache pour qu'il fonctionne sans réseau (salle, garage…).
-   ⚠️ Après chaque modification d'un fichier du site, incrémenter VERSION
-   pour que les téléphones récupèrent la nouvelle version. */
-const VERSION = 'moncoach-v13';
+/* Service worker de Mon coach : fonctionnement hors ligne et mises à jour sans mélange de versions.
+
+   - À l'installation, TOUS les fichiers de l'appli sont téléchargés dans un cache propre à la version
+     (tout ou rien : si un fichier manque, l'ancienne version reste en place).
+   - Les fichiers sont ensuite servis depuis ce cache (démarrage instantané, même sans réseau).
+   - Une nouvelle version s'installe en arrière-plan puis ATTEND : elle prend la main quand l'utilisateur
+     l'accepte (bandeau « Nouvelle version prête ») ou à la prochaine ouverture de l'appli.
+     On n'exécute donc jamais du HTML d'une version avec le JavaScript d'une autre.
+
+   ⚠️ Le bloc ci-dessous est généré : après toute modification du site, lancer « npm run build »
+      (les tests et l'intégration continue vérifient qu'il est à jour). */
+/* build:begin */
+const VERSION = '3.0.0-d0c492c4';
 const FILES = [
-  './', 'index.html', 'axel.html', 'coralie.html', '404.html',
-  'assets/app.js', 'assets/style.css', 'assets/exercices.js', 'assets/figures.js', 'assets/fonts.css',
-  'assets/fonts/bricolage-grotesque.woff2',
-  'programmes/axel.js', 'programmes/coralie.js',
-  'manifest-accueil.webmanifest', 'manifest-axel.webmanifest', 'manifest-coralie.webmanifest',
-  'assets/icons/accueil-192.png', 'assets/icons/axel-192.png', 'assets/icons/coralie-192.png',
-  'assets/icons/accueil-32.png', 'assets/icons/axel-32.png', 'assets/icons/coralie-32.png'
+  './',
+  '404.html',
+  'axel.html',
+  'coralie.html',
+  'index.html',
+  'manifest-accueil.webmanifest',
+  'manifest-axel.webmanifest',
+  'manifest-coralie.webmanifest',
+  'assets/css/app.css',
+  'assets/css/home.css',
+  'assets/fonts.css',
+  'assets/icons/accueil-192.png',
+  'assets/icons/accueil-32.png',
+  'assets/icons/accueil-apple-180.png',
+  'assets/icons/axel-192.png',
+  'assets/icons/axel-32.png',
+  'assets/icons/axel-apple-180.png',
+  'assets/icons/coralie-192.png',
+  'assets/icons/coralie-32.png',
+  'assets/icons/coralie-apple-180.png',
+  'assets/js/app.js',
+  'assets/js/home.js',
+  'src/boot-theme.js',
 ];
+/* build:end */
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
-});
+const PREFIX = 'moncoach-';
+const CACHE = PREFIX + VERSION;
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) =>
+      // cache: 'reload' → on ne réutilise pas une copie périmée du cache HTTP du navigateur
+      cache.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))),
+    ),
   );
 });
 
-/* Réseau d'abord (pour avoir les dernières mises à jour), cache en secours :
-   hors ligne, ou si le réseau met plus de 3 s à répondre (salle avec mauvaise couverture). */
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  const fromCache = () => caches.match(req, { ignoreSearch: true })
-    .then(r => r || (req.mode === 'navigate' ? caches.match('index.html') : undefined));
-  const network = fetch(req).then(res => {
-    if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
-    return res;
-  });
-  const slow = new Promise(r => setTimeout(r, 3000)).then(fromCache);
-  e.respondWith(
-    Promise.race([network.catch(fromCache), slow.then(r => r || network)])
-      .then(r => r || network)
-      .catch(() => Response.error())
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   );
+});
+
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (data.type === 'GET_VERSION' && event.source) event.source.postMessage({ type: 'VERSION', version: VERSION });
+});
+
+async function respond(request) {
+  const cache = await caches.open(CACHE);
+  const url = new URL(request.url);
+  const cached = await cache.match(request, { ignoreSearch: true });
+  if (cached) return cached;
+  if (request.mode === 'navigate') {
+    // GitHub Pages sert aussi « /axel » pour « /axel.html »
+    const html = await cache.match(url.pathname + '.html');
+    if (html) return html;
+  }
+  try {
+    return await fetch(request);
+  } catch (e) {
+    if (request.mode === 'navigate') {
+      const fallback = (await cache.match('404.html')) || (await cache.match('index.html'));
+      if (fallback) return fallback;
+    }
+    return Response.error();
+  }
+}
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+  event.respondWith(respond(request));
 });
