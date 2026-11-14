@@ -1,0 +1,41 @@
+# Vérifications automatiques à chaque envoi : tests unitaires, fichiers générés à jour, tests dans Chromium.
+# La publication reste assurée par GitHub Pages (branche principale, dossier racine) : ce flux ne déploie rien.
+# Tout échec fait échouer le flux : une version n'est considérée comme prête que s'il est vert.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Tests unitaires
+        run: npm test
+      - name: Fichiers générés à jour (npm run build a bien été lancé)
+        run: npm run check
+      - name: Installer Playwright (version verrouillée par package-lock.json) et Chromium
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Tests de bout en bout
+        run: npm run test:e2e
+      - name: Captures d'écran (petit téléphone → ordinateur, clair et sombre)
+        run: npm run test:visual
+      - name: Conserver les captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: tests/e2e/captures/
+          if-no-files-found: ignore

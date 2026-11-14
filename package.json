@@ -1,0 +1,22 @@
+{
+  "name": "moncoach",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Mon coach : suivi d'entraînement personnel (PWA sans dépendance, données locales).",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test \"tests/unit/*.test.js\"",
+    "test:e2e": "node tests/e2e/run.mjs",
+    "test:all": "npm test && npm run test:e2e",
+    "build": "node tools/build.mjs",
+    "check": "node tools/build.mjs --check",
+    "test:visual": "node tests/e2e/visual.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
