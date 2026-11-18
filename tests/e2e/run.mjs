@@ -6,14 +6,17 @@
 import { createRequire } from 'node:module';
 import { cpSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { serve } from '../../tools/serve.mjs';
 import { ROOT, precacheList } from '../../tools/build.mjs';
+import { PROGRAMS } from '../../src/data/programs/index.js';
+import { duplicatePlan, effectiveProgram } from '../../src/core/plans.js';
+import { buildSteps } from '../../src/core/workout.js';
 
 function loadPlaywright() {
-  const paths = [ROOT, ...(process.env.NODE_PATH || '').split(':').filter(Boolean), '/opt/node-tools/node_modules'];
+  const paths = [ROOT, ...(process.env.NODE_PATH || '').split(delimiter).filter(Boolean), '/opt/node-tools/node_modules'];
   for (const p of paths) {
     try {
       return createRequire(join(p, 'x.js'))('playwright');
@@ -468,6 +471,96 @@ test('export puis import : sauvegarde téléchargée, restaurée sur un appareil
   assert.equal((await state(p2)).history.length, 3);
   assert.deepEqual([...page.errors, ...p2.errors], []);
   await ctx2.close();
+});
+
+test('échec d’écriture : sauvegarde du brouillon puis nouvelle tentative depuis la séance guidée', async ({ ctx, base }) => {
+  const page = await open(ctx, base, '/axel.html');
+  await page.click('[data-a="run"]');
+  await page.click('#workout [data-w="plan"]');
+  await page.click('.dlg button:has-text("Développé couché")');
+  await page.fill('#w-r', '8');
+  await page.fill('#w-k', '20');
+  await page.click('#workout [data-w="done"]');
+  await page.click('#workout [data-w="quit"]');
+  await page.click('.dlg button:has-text("Terminer la séance maintenant")');
+  await page.fill('#w-note', 'À conserver');
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    window.blockWrite = true;
+    Storage.prototype.setItem = function (key, value) {
+      if (window.blockWrite && key === 'sport:axel') throw new DOMException('Test quota', 'QuotaExceededError');
+      return original.call(this, key, value);
+    };
+  });
+  await page.click('#workout [data-w="save"]');
+  assert.equal(await text(page, '.dlg h2'), 'Séance non enregistrée');
+  assert.equal((await state(page)).history.length, 0);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exporter mes données' }).click()]);
+  const data = JSON.parse(readFileSync(await dl.path(), 'utf8')).data;
+  assert.equal(data.history.length, 0);
+  assert.equal(data.drafts.s1.note, 'À conserver');
+  assert.equal(data.drafts.s1.sets[2][0].k, '20');
+  assert.equal(await page.locator('#workout').isVisible(), true);
+  await page.click('#workout [data-w="save"]');
+  await page.evaluate(() => { window.blockWrite = false; });
+  await page.getByRole('button', { name: 'Réessayer' }).click();
+  await page.waitForSelector('#view details[open][data-h]');
+  assert.deepEqual((await state(page)).history.map((h) => h.note), ['À conserver']);
+  assert.equal((await state(page)).drafts.s1, undefined);
+});
+
+test('restauration complète : réglages, programme actif, reprise et protection d’un brouillon local', async ({ ctx, base }) => {
+  const page = await open(ctx, base, '/axel.html');
+  const plan = duplicatePlan(PROGRAMS.axel, { name: 'Programme sauvegardé' });
+  const program = effectiveProgram(PROGRAMS.axel, [plan], plan.id);
+  const session = program.seances[1];
+  const warmStep = buildSteps(program, session, 0)[1];
+  assert.equal(warmStep.k, 'warm');
+  const payload = {
+    app: 'axel', v: 3, plans: { plans: [plan], active: plan.id },
+    data: {
+      history: [], cur: session.id, opt: { theme: 'light', kgStep: 2.5, sound: false },
+      drafts: { [session.id]: { date: day(), sets: {}, note: 'Brouillon du téléphone', t0: Date.now(), run: { i: 1 } } },
+    },
+  };
+  await tab(page, 'plus');
+  await page.click('summary:has-text("Importer une sauvegarde")');
+  const restore = async () => {
+    await page.check('#restore-config');
+    await page.fill('#impt', JSON.stringify(payload));
+    await page.click('[data-a="imptxt"]');
+  };
+  await restore();
+  assert.match(await text(page, '#toast'), /brouillon restauré/);
+  assert.equal((await plansOf(page)).active, plan.id);
+  assert.deepEqual((await state(page)).opt, { sound: false, vib: true, theme: 'light', goal: 0, kgStep: 2.5 });
+  assert.equal((await state(page)).cur, session.id);
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+  payload.data.drafts[session.id].note = 'Autre brouillon';
+  await restore();
+  assert.match(await text(page, '#toast'), /brouillon non importé/);
+  assert.equal((await state(page)).drafts[session.id].note, 'Brouillon du téléphone');
+  await page.reload();
+  assert.match(await text(page, '[data-a="run"]'), /Reprendre la séance/);
+  await page.click('[data-a="run"]');
+  assert.equal(await text(page, '#workout .gt'), session.warm.steps[warmStep.w].n);
+});
+
+test('chrono d’échauffement visible avec ses commandes sur petit écran et en paysage', async ({ ctx, base }) => {
+  const page = await open(ctx, base, '/axel.html');
+  for (const viewport of [{ width: 320, height: 568 }, { width: 568, height: 320 }]) {
+    await page.setViewportSize(viewport);
+    await page.reload();
+    await page.click('[data-a="run"]');
+    const ring = await page.locator('#workout .ring').boundingBox();
+    const controls = await page.locator('#workout .w-act').boundingBox();
+    const launch = await page.locator('[data-w="launch"]').boundingBox();
+    assert.ok(ring && controls && launch, 'chrono et commandes présents');
+    assert.ok(ring.y >= 0 && ring.y + ring.height <= controls.y + 1, 'anneau entier au-dessus des commandes');
+    assert.ok(launch.y >= 0 && launch.y + launch.height <= viewport.height + 1, 'commande principale dans la fenêtre');
+    assert.equal(await text(page, '#w-sec'), '30');
+    await noOverflow(page, 'échauffement');
+  }
 });
 
 test('données corrompues : l’appli démarre, garde une copie de l’illisible et récupère la copie de sécurité', async ({ ctx, base }) => {

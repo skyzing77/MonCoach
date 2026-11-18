@@ -5,12 +5,12 @@
    Lancement : npm run test:visual            (une seule taille : npm run test:visual -- 390) */
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { serve } from '../../tools/serve.mjs';
 import { ROOT } from '../../tools/build.mjs';
 
 function loadPlaywright() {
-  for (const p of [ROOT, ...(process.env.NODE_PATH || '').split(':').filter(Boolean), '/opt/node-tools/node_modules']) {
+  for (const p of [ROOT, ...(process.env.NODE_PATH || '').split(delimiter).filter(Boolean), '/opt/node-tools/node_modules']) {
     try {
       return createRequire(join(p, 'x.js'))('playwright');
     } catch (e) {

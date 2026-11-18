@@ -70,12 +70,13 @@ function warmScreen(s) {
   let body = `<div class="k">Échauffement · ${s.w + 1} / ${Wm.steps.length}</div><h2 class="gt" tabindex="-1">${esc(w.n)}</h2><div class="hero-fig">${figAnimTag(w.k)}</div><div class="dose">${esc(w.dose)}</div><p class="how">${esc(w.how)}</p>`;
   let act;
   if (w.s) {
-    body += ring('min(44vw,170px)', W.ph === 'wait' ? 'prêt quand tu veux' : W.ph === 'prep' ? 'mets-toi en place' : '');
+    body = '<div class="w-warm-details">' + body + '</div>' +
+      ring('min(44vw,170px)', W.ph === 'wait' ? 'prêt quand tu veux' : W.ph === 'prep' ? 'mets-toi en place' : '');
     act = W.ph === 'wait'
       ? `<button class="btn" data-w="launch">${icon('play')} Lancer le chrono (${w.s} s)</button><button class="btn ghost" data-w="skip">Passer cet exercice</button>`
       : `<div class="btns"><button class="btn ghost" data-w="pause" id="w-pause"${W.ph === 'prep' ? ' disabled' : ''}>Pause</button><button class="btn ghost" data-w="skip">${lastStep ? 'Terminer' : 'Suivant'}</button></div>`;
   } else act = `<button class="btn" data-w="done">${lastStep ? 'Terminer l’échauffement' : 'Suivant'}</button>`;
-  return { body, act };
+  return { body, act, timedWarm: !!w.s };
 }
 
 function readyScreen() {
@@ -197,6 +198,7 @@ function draw() {
   const scr = s.k === 'rest' ? restScreen(s) : s.k === 'warm' ? warmScreen(s) : s.k === 'ready' ? readyScreen() : s.k === 'work' ? workScreen(s) : s.k === 'end' ? endScreen() : setScreen(s);
   const bodyEl = $('.w-body', root);
   bodyEl.innerHTML = scr.body;
+  root.classList.toggle('timed-warm', !!scr.timedWarm);
   bodyEl.classList.toggle('compact', !!$('.parts', bodyEl)); // série en plusieurs parties : figure réduite pour tout voir sans défiler
   $('.w-act', root).innerHTML = scr.act;
   $('.w-prog i', root).style.width = Math.round(100 * W.progress) + '%';
@@ -353,11 +355,7 @@ const actions = {
   quit: () => askQuit(),
   plan: () => overview(),
   list: () => close(),
-  save: () => {
-    const a = app;
-    close();
-    saveSession(a);
-  },
+  save: () => saveSession(app, W.session, W.draft, close),
 };
 
 function bind(root) {

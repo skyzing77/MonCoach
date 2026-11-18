@@ -6,7 +6,7 @@
      import { a, b as c } from './x.js';     import X from './x.js';
      export function / async function / const / let / class nom …;     export default …; */
 import { readFileSync } from 'node:fs';
-import { dirname, join, normalize, relative } from 'node:path';
+import { dirname, join, normalize, posix } from 'node:path';
 
 const IMPORT_RE = /^import\s+(?:\{([^}]*)\}|([A-Za-z_$][\w$]*))\s+from\s+'([^']+)';?[ \t]*$/gm;
 const EXPORT_RE = /^export\s+(?:(default)\s+|(?:async\s+)?function\*?\s+([A-Za-z_$][\w$]*)|(?:const|let|class)\s+([A-Za-z_$][\w$]*))/gm;
@@ -63,7 +63,7 @@ export function bundle(root, entry) {
   };
   visit(entry, entry);
   return `/* Fichier généré par « npm run build » à partir de ${entry} : ne pas modifier à la main.
-   Modules : ${order.map((m) => relative('src', m.file)).join(', ')} */
+   Modules : ${order.map((m) => posix.relative('src', m.file)).join(', ')} */
 (function () {
 'use strict';
 const __m = Object.create(null);

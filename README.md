@@ -41,7 +41,9 @@ L'historique est stocké uniquement sur l'appareil. Il peut être perdu si l'on 
 
 Onglet **Réglages → Tes données** : « Exporter une sauvegarde » de temps en temps (l'application le rappelle).
 Le fichier contient l'historique et les programmes personnalisés. Il se réimporte sur n'importe quel appareil : les
-séances et les programmes sont **ajoutés**, jamais remplacés, et les doublons sont ignorés.
+séances et les programmes sont **ajoutés**, jamais remplacés, et les doublons sont ignorés. Pour changer d'appareil,
+coche aussi **Restaurer les réglages, le programme actif et les brouillons** avant d'importer le fichier.
+Un brouillon déjà saisi sur l'appareil reste prioritaire en cas de conflit.
 
 Protections intégrées :
 

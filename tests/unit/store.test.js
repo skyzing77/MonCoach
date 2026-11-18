@@ -260,6 +260,43 @@ test('export puis import : aller-retour sans perte, sans doublon', () => {
   assert.equal(fresh.state.history.length, 3);
 });
 
+test('validation d’une séance : le brouillon survit à un refus d’écriture et le nouvel essai enregistre une seule entrée', () => {
+  const storage = new FakeStorage();
+  const store = mk(storage);
+  const draft = store.draft('s1');
+  draft.note = 'Saisie à conserver';
+  store.flush();
+  const before = storage.getItem(store.key);
+  const session = entry('session-1', today());
+  store.pin('s1');
+  storage.quota = 0;
+  assert.equal(store.commitSession('s1', session), false);
+  assert.equal(storage.getItem(store.key), before);
+  assert.equal(store.state.drafts.s1, draft);
+  assert.equal(store.state.history.length, 0);
+  storage.quota = Infinity;
+  assert.equal(store.commitSession('s1', session), true);
+  assert.equal(store.commitSession('s1', session), true);
+  const saved = JSON.parse(storage.getItem(store.key));
+  assert.deepEqual(saved.history.map((h) => h.id), ['session-1']);
+  assert.equal(saved.uns, 1);
+  assert.equal(saved.drafts.s1, undefined);
+});
+
+test('import des supersets : identifiants modernes distincts, comparaison complète des séries sans identifiant', () => {
+  const store = mk(new FakeStorage());
+  const superset = (id, load) => entry(id, today(), {
+    rows: [{ ex: 'Superset', sets: [{ r: '8', k: '6', p: [{ r: '8', k: '6' }, { r: '8', k: load }] }] }],
+  });
+  const history = [superset('a', '8'), superset('b', '10'), superset('c', '8')];
+  const modern = JSON.stringify({ app: 'axel', v: 3, data: { history } });
+  assert.equal(store.import(modern).added, 3);
+  assert.equal(store.import(modern).dup, 3);
+  const legacy = JSON.stringify({ history: [superset(undefined, '10'), superset(undefined, '12')] });
+  assert.deepEqual([store.import(legacy).added, store.import(legacy).dup], [1, 2]);
+  assert.equal(store.state.history.length, 4);
+});
+
 test('import : fichier v1 d’origine, texte brut de l’état, mêmes séances sous un autre identifiant', () => {
   const s = mk(new FakeStorage());
   s.load();

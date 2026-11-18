@@ -380,9 +380,7 @@ export class PlanStore {
   }
 
   setActive(id) {
-    this.state.active = id && this.get(id) ? id : '';
-    this.dirtyActive = true;
-    return this.save();
+    return this.save((state) => ({ ...state, active: id && this.get(id) ? id : '' }));
   }
 
   /** Intègre l'état écrit par un autre onglet. Renvoie true si quelque chose a changé. */
@@ -396,10 +394,12 @@ export class PlanStore {
     return true;
   }
 
-  save() {
+  save(update = (state) => state) {
     this.absorb(this.read());
-    this.state.mt = Date.now();
-    const json = JSON.stringify(this.state);
+    const next = update(this.state);
+    if (!next) return true;
+    next.mt = Date.now();
+    const json = JSON.stringify(next);
     let ok = false;
     try {
       this.storage.setItem(this.key, json);
@@ -408,6 +408,7 @@ export class PlanStore {
       this.onWriteError();
     }
     if (ok) {
+      this.state = next;
       this.lastRaw = json;
       this.seen = new Set(this.state.plans.map((p) => p.id));
       this.dirtyActive = false;
@@ -418,13 +419,16 @@ export class PlanStore {
   /** Ajoute les programmes d'une sauvegarde (jamais de remplacement). */
   importPlans(list) {
     let added = 0;
-    for (const r of Array.isArray(list) ? list : []) {
-      const p = cleanPlan(r);
-      if (!p || this.get(p.id) || this.state.plans.length >= MAX_PLANS) continue;
-      this.state.plans.push(p);
-      added++;
-    }
-    if (added) this.save();
-    return added;
+    const saved = this.save((state) => {
+      const plans = [...state.plans];
+      for (const raw of Array.isArray(list) ? list : []) {
+        const plan = cleanPlan(raw);
+        if (!plan || plans.some((p) => p.id === plan.id) || plans.length >= MAX_PLANS) continue;
+        plans.push(plan);
+        added++;
+      }
+      return added ? { ...state, plans } : null;
+    });
+    return saved ? added : null;
   }
 }

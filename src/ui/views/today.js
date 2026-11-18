@@ -6,8 +6,9 @@ import { ringMeter, deltaTag } from '../charts.js';
 import { draftSet, buildEntry } from '../../core/workout.js';
 import { figTag } from '../figure.js';
 import { icon } from '../icons.js';
-import { toast, confirm, announce } from '../dom.js';
+import { toast, confirm, announce, dialog } from '../dom.js';
 import { unlockAudio } from '../audio.js';
+import { downloadBackup } from './more.js';
 
 const DOW = 'LMMJVSD';
 
@@ -190,17 +191,35 @@ export function renderToday(app) {
   return h;
 }
 
-/** Enregistre la séance en cours dans l'historique. Renvoie true si c'est fait. */
-export function saveSession(app) {
-  const se = sessionById(app.program, app.store.state.cur);
-  const d = currentDraft(app);
+/** Enregistre la séance et garde la saisie accessible si le stockage refuse l'écriture. */
+export async function saveSession(app, se = sessionById(app.program, app.store.state.cur), d = currentDraft(app), onSaved = () => {}) {
   const entry = buildEntry(app.program, se, d);
   if (!entry) {
     toast('Rien à enregistrer : renseigne au moins une série.');
     return false;
   }
-  app.store.addEntry(entry);
-  app.store.clearDraft(se.id);
+  while (!app.store.commitSession(se.id, entry)) {
+    const action = await dialog({
+      title: 'Séance non enregistrée',
+      text: 'Le stockage de cet appareil a refusé l’enregistrement. La saisie reste ouverte. Tu peux réessayer ou télécharger une sauvegarde qui contient ton brouillon.',
+      actions: [
+        { label: 'Réessayer', value: 'retry' },
+        { label: 'Exporter mes données', value: 'export', kind: 'ghost' },
+        { label: 'Revenir à la séance', value: 'back', kind: 'quiet' },
+      ],
+    });
+    if (action === 'retry') continue;
+    if (action === 'export') {
+      try {
+        downloadBackup(app);
+        toast('Sauvegarde exportée avec le brouillon.');
+      } catch (e) {
+        toast('Export impossible sur cet appareil.');
+      }
+    }
+    return false;
+  }
+  onSaved();
   app.stopMini();
   app.go('progres', { open: entry.id });
   toast('Séance enregistrée.');

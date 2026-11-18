@@ -10,7 +10,7 @@
    ⚠️ Le bloc ci-dessous est généré : après toute modification du site, lancer « npm run build »
       (les tests et l'intégration continue vérifient qu'il est à jour). */
 /* build:begin */
-const VERSION = '3.0.0-d0c492c4';
+const VERSION = '3.0.1-5ddf8a64';
 const FILES = [
   './',
   '404.html',

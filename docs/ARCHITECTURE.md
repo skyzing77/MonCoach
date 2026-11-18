@@ -120,9 +120,10 @@ programme (`mode`, `goal`, `params` pour un circuit, `seances`) plus `id`, `name
 ### Import / export
 
 - Export : `{ app, v, at, data, plans? }` (JSON) ; CSV une ligne par série (séparateur `;`, BOM pour Excel).
-- Import : formats v1, v2 et v3, fichier ou texte collé. Additif uniquement. Doublons détectés par identifiant **et** par
-  contenu (date + séries). Fichier d'un autre programme refusé. Limite 5 Mo. Les programmes personnalisés du fichier
-  sont ajoutés s'ils n'existent pas, jamais activés d'office.
+- Import : formats v1, v2 et v3, fichier ou texte collé. L'historique et les programmes sont fusionnés. Les doublons
+  sont détectés par identifiant, avec une comparaison de la date et de toutes les séries pour les anciennes données.
+  L'option de restauration reprend aussi les réglages, le programme actif et les brouillons compatibles. Une saisie
+  locale garde la priorité sur le brouillon importé de la même séance. Fichier d'un autre profil refusé. Limite 5 Mo.
 
 ## 4. Moteur de séance (`core/workout.js`)
 

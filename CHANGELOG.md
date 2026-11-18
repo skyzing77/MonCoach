@@ -1,5 +1,12 @@
 # Journal des changements
 
+## 3.0.1
+
+- Une séance est confirmée après son écriture. En cas d'échec, la saisie permet de réessayer ou d'exporter le brouillon.
+- L'import distingue les séances munies d'identifiants différents et compare toutes les parties des supersets pour les anciennes sauvegardes.
+- Une option d'import restaure les réglages, le programme actif et les brouillons compatibles.
+- Le chrono d'échauffement reste visible sur les écrans courts. Les fichiers générés sont identiques sous Windows et Linux.
+
 ## 3.0.0
 
 Les données des versions précédentes sont reprises automatiquement : une copie brute des données de la version 2 est

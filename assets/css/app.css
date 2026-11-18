@@ -505,6 +505,17 @@ ul.errs li::marker{color:var(--warn)}
   .big{font-size:26px}.gt{font-size:22px}
   .duo b{font-size:23px}
 }
+@media (max-height:640px){
+  #workout.timed-warm{overflow:hidden}
+  .timed-warm .w-top,.timed-warm .w-act{position:static;flex:none}
+  .timed-warm .w-body{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0}
+  .w-warm-details{overflow-y:auto;overscroll-behavior:contain}
+  .timed-warm .hero-fig{width:min(30vw,88px);margin:6px auto}
+  .timed-warm .ring{max-width:114px;margin:4px auto}
+  .timed-warm .ring .rn b{font-size:40px}
+  .timed-warm .ring .rn span{font-size:11px}
+  .timed-warm .w-act{padding-top:8px}
+}
 @media (orientation:landscape) and (max-height:480px){
   .hero-fig{width:120px}
   .ring{max-width:150px}
@@ -513,6 +524,8 @@ ul.errs li::marker{color:var(--warn)}
   .w-act>.btn,.w-act>.btns{flex:1;margin-top:0}
   .w-act .btn{min-height:46px}
   .w-top{padding-bottom:4px}
+  .timed-warm .w-body{grid-template-columns:minmax(0,1fr) 120px;grid-template-rows:minmax(0,1fr);gap:12px}
+  .timed-warm .ring{align-self:center}
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.tabs{background:var(--card)}}
 @media (prefers-reduced-transparency:reduce){.tabs{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card)}body::before{display:none}}

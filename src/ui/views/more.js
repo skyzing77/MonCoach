@@ -1,6 +1,7 @@
 /* Onglet « Plus » : guide du programme, réglages, sauvegarde des données, informations sur l'application. */
 import { esc, today, fmtDay, plural } from '../../core/util.js';
 import { exportPayload, toCSV, KG_STEPS } from '../../core/store.js';
+import { cleanPlan, planErrors } from '../../core/plans.js';
 import { icon } from '../icons.js';
 import { toast, download, confirm } from '../dom.js';
 import { setSignalOptions, signal, unlockAudio } from '../audio.js';
@@ -35,6 +36,8 @@ export function renderMore(app) {
     <div class="btns"><button class="btn ghost" data-a="copy">Copier</button><button class="btn ghost" data-a="csv">Export CSV</button></div>
   </div>` +
   fold('Importer une sauvegarde', `<p class="mute">Les séances du fichier sont <b>ajoutées</b> à l’historique : rien n’est supprimé ni remplacé, les doublons sont ignorés.</p>
+    <label class="chkl"><input type="checkbox" id="restore-config"> Restaurer aussi les réglages, le programme actif et les brouillons</label>
+    <p class="mute small">Les brouillons déjà saisis sur cet appareil sont conservés en cas de conflit.</p>
     <label class="f" style="margin-top:10px">Fichier de sauvegarde (.json)<input type="file" id="imp" accept=".json,application/json,text/plain"></label>
     <label class="f" style="margin-top:12px">… ou colle ici les données copiées<textarea id="impt" rows="3" spellcheck="false"></textarea></label>
     <button class="btn ghost" data-a="imptxt">Importer le texte collé</button>` +
@@ -52,15 +55,49 @@ export function renderMore(app) {
   return h;
 }
 
+export function downloadBackup(app) {
+  const payload = exportPayload(app.store.state, app.program, app.plans.state);
+  download('moncoach-' + app.program.key + '-' + today() + '.json', JSON.stringify(payload), 'application/json');
+}
+
+function restoreConfiguration(app, configuration, plans, bits) {
+  const allowedSessions = new Set(app.base.seances.map((se) => se.id));
+  const compatiblePlans = new Set();
+  for (const raw of plans) {
+    const imported = cleanPlan(raw);
+    const local = imported && app.plans.get(imported.id);
+    if (!local || JSON.stringify([local.mode, local.params, local.seances]) !== JSON.stringify([imported.mode, imported.params, imported.seances])) continue;
+    for (const se of local.seances) allowedSessions.add(se.id);
+    if (!planErrors(app.base, local).length) compatiblePlans.add(local.id);
+  }
+
+  const active = configuration.active;
+  if (active && !compatiblePlans.has(active)) bits.push('programme actif de la sauvegarde indisponible ou différent');
+  else if (active !== undefined && active !== app.plans.active) {
+    if (app.plans.setActive(active)) app.refreshProgram();
+    else bits.push('programme actif non enregistré');
+  }
+
+  const result = app.store.restoreConfiguration(configuration, allowedSessions);
+  if (!result.saved) return bits.push('réglages et brouillons non enregistrés');
+  app.applyTheme();
+  setSignalOptions(app.store.state.opt);
+  if (result.hasOptions) bits.push('réglages restaurés');
+  if (result.restored) bits.push(result.restored + ' ' + plural(result.restored, 'brouillon restauré', 'brouillons restaurés'));
+  if (result.conflicts.length) bits.push(result.conflicts.length + ' ' + plural(result.conflicts.length, 'brouillon non importé (saisie locale ou programme différent)', 'brouillons non importés (saisie locale ou programme différent)'));
+}
+
 function report(app, res) {
   if (!res.ok) return toast(res.error);
   const np = res.plans && res.plans.length ? app.plans.importPlans(res.plans) : 0;
   if (np) app.refreshProgram();
-  app.render({ keepScroll: true });
   const bits = [res.added + ' ' + plural(res.added, 'séance ajoutée', 'séances ajoutées')];
   if (np) bits.push(np + ' ' + plural(np, 'programme ajouté', 'programmes ajoutés'));
+  if (np === null) bits.push('programmes non enregistrés');
   if (res.dup) bits.push(res.dup + ' déjà ' + plural(res.dup, 'présente', 'présentes'));
   if (res.invalid) bits.push(res.invalid + ' ' + plural(res.invalid, 'illisible ignorée', 'illisibles ignorées'));
+  if (res.configuration) restoreConfiguration(app, res.configuration, res.plans, bits);
+  app.render({ keepScroll: true });
   toast(bits.join(' · ') + '.', { ms: 5000 });
 }
 
@@ -96,7 +133,7 @@ export const moreActions = {
   },
   exp(app) {
     try {
-      download('moncoach-' + app.program.key + '-' + today() + '.json', JSON.stringify(exportPayload(app.store.state, app.program, app.plans.state)), 'application/json');
+      downloadBackup(app);
       app.store.markExported();
       app.render({ keepScroll: true });
       toast('Sauvegarde exportée.');
@@ -125,7 +162,7 @@ export const moreActions = {
   imptxt(app) {
     const el = document.getElementById('impt');
     if (!el.value.trim()) return toast('Colle d’abord les données dans le champ.');
-    report(app, app.store.import(el.value));
+    report(app, app.store.import(el.value, { restore: document.getElementById('restore-config').checked }));
   },
   async snap(app) {
     const ok = await confirm('Récupérer la copie de sécurité ?', 'Les séances présentes dans la copie et absentes de l’historique seront ajoutées. Rien n’est supprimé.', 'Récupérer', '');
@@ -147,6 +184,7 @@ export function moreChange(app, t) {
   const f = t.files && t.files[0];
   if (!f) return;
   if (f.size > 5e6) return toast('Fichier trop volumineux pour être une sauvegarde.');
-  f.text().then((text) => report(app, app.store.import(text)), () => toast('Lecture du fichier impossible.'));
+  const restore = document.getElementById('restore-config').checked;
+  f.text().then((text) => report(app, app.store.import(text, { restore })), () => toast('Lecture du fichier impossible.'));
   t.value = '';
 }

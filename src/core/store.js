@@ -19,9 +19,14 @@ const MAX_TXT = 24;
 const MAX_NOTE = 2000;
 const THEMES = ['auto', 'dark', 'light'];
 
-const txt = (v, max = MAX_TXT) => (v == null ? '' : String(v).slice(0, max));
-const posNum = (v) => (Number.isFinite(+v) && +v > 0 ? +v : 0);
+const txt = (v, max = MAX_TXT) => (['string', 'number', 'boolean'].includes(typeof v) ? String(v).slice(0, max) : '');
+const posNum = (v) => {
+  const n = typeof v === 'number' || typeof v === 'string' ? Number(v) : 0;
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
+const hasSeries = (draft) => Object.values(draft.sets).some((sets) => sets.some((s) => s && (s.d || s.r !== '' || s.k !== '')));
+const hasProgress = (draft) => !!draft && !!(draft.note || draft.t0 || draft.run || hasSeries(draft));
 
 /** État vide pour un programme. */
 export function blank(program) {
@@ -54,7 +59,7 @@ export const volumeOf = (rows) =>
 
 /** Valide et répare une séance d'historique. Renvoie null si elle est inexploitable. */
 export function cleanEntry(h, i, program) {
-  if (!isObj(h) || !isDay(String(h.date)) || !Array.isArray(h.rows) || (h.id == null && i == null)) return null;
+  if (!isObj(h) || !isDay(h.date) || !Array.isArray(h.rows) || (h.id == null && i == null)) return null;
   const idx = exerciseIndex(program);
   const rows = h.rows
     .filter((r) => isObj(r) && typeof r.ex === 'string' && Array.isArray(r.sets))
@@ -91,7 +96,8 @@ export function cleanEntry(h, i, program) {
     quel, borné, pour le retrouver quand on revient à ce programme). */
 function cleanDraft(d, program, se) {
   if (!isObj(d) || !isObj(d.sets)) return null;
-  const circuit = se ? isCircuit(program) : +d.tours > 0;
+  const tours = posNum(d.tours);
+  const circuit = se ? isCircuit(program) : tours > 0;
   const sets = {};
   for (const x of Object.keys(d.sets)) {
     const a = d.sets[x];
@@ -99,8 +105,8 @@ function cleanDraft(d, program, se) {
     sets[x] = a.slice(0, 30).map((z) => (isObj(z) ? { ...cleanSet(z), d: !!z.d } : { r: '', k: '', d: false }));
   }
   const out = {
-    date: isDay(String(d.date)) ? String(d.date) : today(),
-    tours: circuit ? (Number.isInteger(+d.tours) && +d.tours >= 1 && +d.tours <= 5 ? +d.tours : se ? program.params.tours : 2) : 0,
+    date: isDay(d.date) ? d.date : today(),
+    tours: circuit ? (Number.isInteger(tours) && tours >= 1 && tours <= 5 ? tours : se ? program.params.tours : 2) : 0,
     sets,
     note: txt(d.note, MAX_NOTE),
     t0: posNum(d.t0),
@@ -132,11 +138,11 @@ export function normalize(o, program) {
 
   const drafts = isObj(src.drafts) ? src.drafts : {};
   for (const sid of Object.keys(drafts).slice(0, 40)) {
-    if (!/^[\w-]{1,60}$/.test(sid)) continue;
+    if (!/^[\w-]{1,60}$/.test(sid) || sid === '__proto__') continue;
     const se = program.seances.find((x) => x.id === sid) || null;
     const d = cleanDraft(drafts[sid], program, se);
     // brouillon d'une séance inconnue du programme actif : gardé seulement s'il contient une saisie
-    if (d && (se || Object.values(d.sets).some((a) => a.some((z) => z.d || z.r !== '' || z.k !== '')))) s.drafts[sid] = d;
+    if (d && (se || hasProgress(d))) s.drafts[sid] = d;
   }
 
   if (program.seances.some((x) => x.id === src.cur)) s.cur = src.cur;
@@ -228,10 +234,13 @@ export const exportPayload = (state, program, plans = null) => {
   return o;
 };
 
-const signature = (h) => h.date + '|' + JSON.stringify(h.rows.map((r) => [r.ex, r.sets.map((s) => [s.r, s.k])]));
+const signature = (h) => JSON.stringify([
+  h.date, h.rows.map((r) => [r.ex, r.sets.map((s) => [s.r, s.k, s.p?.map((p) => [p.r, p.k])])]),
+]);
+const generatedLegacyId = (id) => /^(?:old\d+|imp[\da-z]+)$/.test(id);
 
-/** Ajoute à l'état les séances d'un texte exporté (formats v1 et v2). Ne supprime et ne remplace jamais rien. */
-export function importInto(state, text, program) {
+/** Fusionne l'historique des sauvegardes v1 à v3 et lit la configuration si demandée. */
+export function importInto(state, text, program, { restore = false } = {}) {
   let j;
   if (typeof text !== 'string' || text.length > 5e6) return { ok: false, error: 'Données non reconnues.' };
   try {
@@ -246,21 +255,40 @@ export function importInto(state, text, program) {
 
   const ids = new Set(state.history.map((h) => h.id));
   const sigs = new Set(state.history.map(signature));
+  const version = posNum(j.v ?? d.v);
+  const legacy = version < 2;
   let added = 0;
   let dup = 0;
   let invalid = 0;
   d.history.forEach((raw, i) => {
-    const h = cleanEntry(raw, null, program) || (isObj(raw) && raw.id == null ? cleanEntry({ ...raw, id: 'imp' + uid() + i }, null, program) : null);
+    if (!isObj(raw)) return void invalid++;
+    const id = typeof raw.id === 'string' ? raw.id.trim() : typeof raw.id === 'number' ? String(raw.id) : '';
+    const h = cleanEntry({ ...raw, id: id || 'imp' + uid() + i }, null, program);
     if (!h || !h.rows.length) return void invalid++;
-    if (ids.has(h.id) || sigs.has(signature(h))) return void dup++;
+    // Les identifiants artificiels « oldN » peuvent désigner des séances différentes selon la sauvegarde.
+    const legacyId = generatedLegacyId(h.id);
+    const sig = signature(h);
+    if ((!legacyId && ids.has(h.id)) || ((legacy || !id || legacyId) && sigs.has(sig))) return void dup++;
+    if (ids.has(h.id)) h.id = 'imp' + uid() + i;
     ids.add(h.id);
-    sigs.add(signature(h));
+    sigs.add(sig);
     state.history.push(h);
     added++;
   });
   const before = state.rides.length;
-  state.rides = [...new Set([...state.rides, ...(Array.isArray(d.rides) ? d.rides.map(String).filter(isDay) : [])])].sort();
-  return { ok: true, added, dup, invalid, rides: state.rides.length - before, plans: isObj(j.plans) && Array.isArray(j.plans.plans) ? j.plans.plans : [] };
+  state.rides = [...new Set([...state.rides, ...(Array.isArray(d.rides) ? d.rides.filter(isDay) : [])])].sort();
+  state.uns = Math.min(state.history.length, state.uns + added);
+  const res = { ok: true, added, dup, invalid, rides: state.rides.length - before, plans: isObj(j.plans) && Array.isArray(j.plans.plans) ? j.plans.plans : [] };
+  if (restore) {
+    res.configuration = {
+      opt: d.opt,
+      mute: d.mute,
+      drafts: d.drafts,
+      cur: d.cur,
+      active: typeof j.plans?.active === 'string' ? j.plans.active : j.app && version >= 3 ? '' : undefined,
+    };
+  }
+  return res;
 }
 
 /** Historique au format tableur (CSV, séparateur « ; », une ligne par série). */
@@ -387,9 +415,7 @@ export class Store {
   restoreSnapshot() {
     const snap = this.readSnapshot();
     if (!snap) return { ok: false, error: 'Aucune copie de sécurité disponible.' };
-    const res = importInto(this.state, snap.raw, this.program);
-    if (res.ok) this.flush();
-    return res;
+    return this.import(snap.raw);
   }
 
   /** Change de programme actif (programme personnalisé ↔ programme de base) sans rien perdre : l'historique et les
@@ -417,8 +443,7 @@ export class Store {
   }
 
   hasDraft(sid) {
-    const d = this.state.drafts[sid];
-    return !!d && Object.values(d.sets).some((a) => a.some((s) => s && (s.d || s.r !== '' || s.k !== '')));
+    return hasProgress(this.state.drafts[sid]);
   }
 
   /* ----- modifications ----- */
@@ -434,6 +459,21 @@ export class Store {
     this.state.history.push(entry);
     this.state.uns = Math.min(this.state.history.length, this.state.uns + 1);
     this.flush();
+  }
+
+  /** Enregistre l'historique et retire le brouillon ensemble. Un échec laisse la saisie en place. */
+  commitSession(sid, entry) {
+    return !this.storage.volatile && this.flush((state) => {
+      const drafts = { ...state.drafts };
+      delete drafts[sid];
+      const exists = state.history.some((h) => h.id === entry.id);
+      return {
+        ...state,
+        drafts,
+        history: exists ? state.history : [...state.history, entry],
+        uns: exists ? state.uns : Math.min(state.history.length + 1, state.uns + 1),
+      };
+    });
   }
 
   /** Supprime une séance et la renvoie (pour pouvoir annuler). */
@@ -466,10 +506,37 @@ export class Store {
     this.flush();
   }
 
-  import(text) {
-    const res = importInto(this.state, text, this.program);
-    if (res.ok) this.flush();
-    return res;
+  import(text, options) {
+    if (this.storage.volatile) return { ok: false, error: 'Import impossible : le stockage de cet appareil est indisponible.' };
+    let result;
+    const saved = this.flush((state) => {
+      const next = { ...state, history: [...state.history] };
+      result = importInto(next, text, this.program, options);
+      return result.ok ? next : null;
+    });
+    return saved || !result.ok ? result : { ok: false, error: 'Import impossible : l’historique n’a pas pu être enregistré.' };
+  }
+
+  restoreConfiguration(configuration, allowedSessions) {
+    const imported = normalize(configuration, this.program);
+    const hasOptions = isObj(configuration.opt) || typeof configuration.mute === 'boolean';
+    const conflicts = [];
+    let restored = 0;
+    const saved = this.flush((state) => {
+      const drafts = { ...state.drafts };
+      for (const [sid, draft] of Object.entries(imported.drafts)) {
+        if (!hasProgress(draft)) continue;
+        if (!allowedSessions.has(sid) || (hasProgress(drafts[sid]) && JSON.stringify(drafts[sid]) !== JSON.stringify(draft))) {
+          conflicts.push(sid);
+        } else if (!hasProgress(drafts[sid])) {
+          drafts[sid] = draft;
+          restored++;
+        }
+      }
+      const hasSession = this.program.seances.some((se) => se.id === configuration.cur) && allowedSessions.has(configuration.cur);
+      return { ...state, drafts, opt: hasOptions ? imported.opt : state.opt, cur: hasSession ? imported.cur : state.cur };
+    });
+    return { saved, restored, conflicts, hasOptions };
   }
 
   /** La séance guidée garde une référence sur son brouillon : il ne doit pas être remplacé par celui d'un autre onglet. */
@@ -498,14 +565,16 @@ export class Store {
   }
 
   /** Écrit immédiatement (après avoir repris les éventuelles modifications d'un autre onglet). */
-  flush() {
+  flush(update = (state) => state) {
+    this.absorb(this.read(this.key));
+    const state = update(this.state);
+    if (!state) return false;
     clearTimeout(this.timer);
     this.timer = null;
-    this.absorb(this.read(this.key));
-    this.state.v = SCHEMA;
-    this.state.mt = Date.now();
-    this.state.mute = !this.state.opt.sound; // lisible par l'ancienne version en cas de retour en arrière
-    const json = JSON.stringify(this.state);
+    state.v = SCHEMA;
+    state.mt = Date.now();
+    state.mute = !state.opt.sound; // lisible par l'ancienne version en cas de retour en arrière
+    const json = JSON.stringify(state);
     let ok = this.write(this.key, json);
     if (!ok) {
       // Stockage plein : la copie de sécurité automatique est sacrifiée en premier, jamais les données courantes.
@@ -517,6 +586,7 @@ export class Store {
       ok = this.write(this.key, json);
     }
     if (ok) {
+      Object.assign(this.state, state);
       this.lastRaw = json;
       this.base = baseOf(this.state);
       this.dirty.clear();
